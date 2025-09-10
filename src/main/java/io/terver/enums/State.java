@@ -1,0 +1,13 @@
+package io.terver.enums;
+
+public enum State {
+    NONE,
+    PERMUTATION,
+    DISTRIBUTION,
+    COMBINATION,
+    PERMUTATION_REPEATED,
+    DISTRIBUTION_REPEATED,
+    COMBINATION_REPEATED,
+    URN_MODEL_1,
+    URN_MODEL_2
+}
