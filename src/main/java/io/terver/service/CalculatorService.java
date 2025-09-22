@@ -2,181 +2,158 @@ package io.terver.service;
 
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 @Service
 public class CalculatorService {
 
-    private static final Pattern SINGLE_NUMBER_PATTERN = Pattern.compile("^\\s*\\d+\\s*$");
-    private static final Pattern TWO_NUMBERS_PATTERN = Pattern.compile("^\\s*\\d+\\s+\\d+\\s*$");
-    private static final Pattern THREE_NUMBERS_PATTERN = Pattern.compile("^\\s*\\d+\\s+\\d+\\s+\\d+\\s*$");
-    private static final Pattern FOUR_NUMBERS_PATTERN = Pattern.compile("^\\s*\\d+\\s+\\d+\\s+\\d+\\s+\\d+\\s*$");
+    private Pattern compilePatternWithNums(int k) {
+        if (k < 1) throw new IllegalArgumentException();
+        return Pattern.compile("^\\s*\\d+" + "\\s+\\d+".repeat(k - 1) + "\\s*$");
+    }
 
     private boolean isNotMatch(Pattern pattern, String message) {
         return !pattern.matcher(message).matches();
     }
 
-    private int[] parseTwoNumbers(String message) {
-        String[] parts = message.trim().split("\\s+");
-        if (parts.length != 2) {
+    private int[] parseNumbers(String message, int k) {
+        String[] parts = message.strip().split("\\s+");
+        if (parts.length != k) {
             throw new IllegalArgumentException();
         }
-        return new int[] { Integer.parseInt(parts[0]), Integer.parseInt(parts[1]) };
+        return Arrays.stream(parts).mapToInt(Integer::parseInt).toArray();
     }
 
-    private int[] parseThreeNumbers(String message) {
-        String[] parts = message.trim().split("\\s+");
-        if (parts.length != 3) {
-            throw new IllegalArgumentException();
-        }
-        return new int[] { Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]) };
-    }
-
-    private int[] parseFourNumbers(String message) {
-        String[] parts = message.trim().split("\\s+");
-        if (parts.length != 4) {
-            throw new IllegalArgumentException();
-        }
-        return new int[] { Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]) };
-    }
-
-    public int permutations(String message) {
-        if (isNotMatch(SINGLE_NUMBER_PATTERN, message)) {
+    public BigInteger permutations(String message) {
+        if (isNotMatch(compilePatternWithNums(1), message)) {
             throw new NumberFormatException();
         }
         int n = Integer.parseInt(message.trim());
         if (n < 0) throw new IllegalArgumentException();
-        int res = 1;
+        BigInteger res = BigInteger.ONE;
         for (int i = 2; i <= n; i++) {
-            res *= i;
+            res = res.multiply(BigInteger.valueOf(i));
         }
         return res;
     }
 
-    public int permutationsRepeat(String message) {
-        if (isNotMatch(SINGLE_NUMBER_PATTERN, message)) {
+    public BigInteger permutationsRepeat(String message) {
+        int total = Integer.parseInt(message.strip().trim().split("\\s+")[0]) + 1;
+        if (isNotMatch(compilePatternWithNums(total), message)) {
             throw new NumberFormatException();
         }
-        double n = Integer.parseInt(message.trim());
-        if (n < 0) {
-            throw new IllegalArgumentException();
+        int[] nums = parseNumbers(message, total);
+        int sum = Arrays.stream(nums).sum() - nums[0];
+        BigInteger res = BigInteger.ONE;
+        for (int i = 2; i <= sum; i++) {
+            res = res.multiply(BigInteger.valueOf(i));
         }
-        return (int) Math.pow(n, n);
+        for (int j = 1; j < total; j++) {
+            if (nums[j] < 0) {
+                throw new IllegalArgumentException();
+            }
+            for (int i = 2; i <= nums[j]; i++) {
+                res = res.divide(BigInteger.valueOf(i));
+            }
+        }
+        return res;
     }
 
-    public int distribution(String message) {
-        if (isNotMatch(TWO_NUMBERS_PATTERN, message)) {
+    public BigInteger distribution(String message) {
+        if (isNotMatch(compilePatternWithNums(2), message)) {
             throw new NumberFormatException();
         }
-        int[] nums = parseTwoNumbers(message);
+        int[] nums = parseNumbers(message, 2);
         int n = nums[0], k = nums[1];
         if (n < k || n < 0 || k < 0) {
             throw new IllegalArgumentException();
         }
-        int res = 1;
+        BigInteger res = BigInteger.ONE;
         for (int i = n - k + 1; i <= n; i++) {
-            res *= i;
+            res = res.multiply(BigInteger.valueOf(i));
         }
         return res;
     }
 
-    public int distributionRepeat(String message) {
-        if (isNotMatch(TWO_NUMBERS_PATTERN, message)) {
+    public BigInteger distributionRepeat(String message) {
+        if (isNotMatch(compilePatternWithNums(2), message)) {
             throw new NumberFormatException();
         }
-        int[] nums = parseTwoNumbers(message);
-        int n = nums[0], k = nums[1];
-        if (n < k|| n < 0 || k < 0) {
-            throw new IllegalArgumentException();
-        }
-        return (int) Math.pow(n, k);
-    }
-
-    public int combination(String message) {
-        if (isNotMatch(TWO_NUMBERS_PATTERN, message)) {
-            throw new NumberFormatException();
-        }
-        int[] nums = parseTwoNumbers(message);
+        int[] nums = parseNumbers(message, 2);
         int n = nums[0], k = nums[1];
         if (n < k || n < 0 || k < 0) {
             throw new IllegalArgumentException();
         }
-        int res = 1;
-        for (int i = n - k + 1; i <= n; i++) {
-            res *= i;
-        }
-        for (int i = 1; i <= k; i++) {
-            res /= i;
-        }
-        return res;
+        return BigInteger.valueOf(n).pow(k);
     }
 
-    public int combinationRepeat(String message) {
-        if (isNotMatch(TWO_NUMBERS_PATTERN, message)) {
+    public BigInteger combination(String message) {
+        if (isNotMatch(compilePatternWithNums(2), message)) {
             throw new NumberFormatException();
         }
-        int[] nums = parseTwoNumbers(message);
+        int[] nums = parseNumbers(message, 2);
         int n = nums[0], k = nums[1];
         if (n < k || n < 0 || k < 0) {
             throw new IllegalArgumentException();
         }
-        int res = 1;
-        for (int i = n; i <= n + k - 1; i++) {
-            res *= i;
-        }
-        for (int i = 1; i <= k; i++) {
-            res /= i;
+        int r = Math.min(k, n - k);
+        BigInteger res = BigInteger.ONE;
+        for (int i = 1; i <= r; i++) {
+            res = res.multiply(BigInteger.valueOf(n - r + i));
+            res = res.divide(BigInteger.valueOf(i));
         }
         return res;
     }
 
-    public double urnModelOne(String message) {
-        if (isNotMatch(THREE_NUMBERS_PATTERN, message)) {
+    public BigInteger combinationRepeat(String message) {
+        if (isNotMatch(compilePatternWithNums(2), message)) {
             throw new NumberFormatException();
         }
-        int[] nums = parseThreeNumbers(message);
+        int[] nums = parseNumbers(message, 2);
+        int n = nums[0], k = nums[1];
+        if (n < k || n < 0 || k < 0) {
+            throw new IllegalArgumentException();
+        }
+        int r = Math.min(k, n - 1);
+        BigInteger res = BigInteger.ONE;
+        for (int i = 1; i <= r; i++) {
+            res = res.multiply(BigInteger.valueOf(n + k - 1 - r + i));
+            res = res.divide(BigInteger.valueOf(i));
+        }
+        return res;
+    }
+
+    public BigDecimal urnModelOne(String message) {
+        if (isNotMatch(compilePatternWithNums(3), message)) {
+            throw new NumberFormatException();
+        }
+        int[] nums = parseNumbers(message, 3);
         int n = nums[0], m = nums[1], k = nums[2];
         if (n < m || m <= k || k < 0) {
             throw new IllegalArgumentException();
         }
-        double res = 1;
-        for (int i = m - k + 1; i <= m; i++) {
-            res *= i;
-        }
-        for (int i = n - k + 1; i <= n; i++) {
-            res /= i;
-        }
-        return res;
+        BigInteger num = combination(" " + m + " " + k);
+        BigInteger den = combination(" " + n + " " + k);
+        return new BigDecimal(num).divide(new BigDecimal(den), MathContext.DECIMAL128);
     }
 
-    public double urnModelTwo(String message) {
-        if (isNotMatch(FOUR_NUMBERS_PATTERN, message)) {
+    public BigDecimal urnModelTwo(String message) {
+        if (isNotMatch(compilePatternWithNums(4), message)) {
             throw new NumberFormatException();
         }
-        int[] nums = parseFourNumbers(message);
+        int[] nums = parseNumbers(message, 4);
         int n = nums[0], m = nums[1], k = nums[2], r = nums[3];
         if (n < m || m <= k || k < r || n < 0 || m < 0 || k < 0 || r < 0) {
             throw new IllegalArgumentException();
         }
-        double res = 1;
-        for (int i = m - r + 1; i <= m; i++) {
-            res *= i;
-        }
-        for (int i = 1; i <= r; i++) {
-            res /= i;
-        }
-        for (int i = n - m - k + r + 1; i <= n - m; i++) {
-            res *= i;
-        }
-        for (int i = 1; i <= k - r; i++) {
-            res /= i;
-        }
-        for (int i = 1; i <= k ; i++) {
-            res *= i;
-        }
-        for (int i = n - k + 1; i <= n; i++) {
-            res /= i;
-        }
-        return res;
+        BigInteger a = combination(" " + m + " " + r);
+        BigInteger b = combination(" " + (n - m) + " " + (k - r));
+        BigInteger num = a.multiply(b);
+        BigInteger den = combination(" " + n + " " + k);
+        return new BigDecimal(num).divide(new BigDecimal(den), MathContext.DECIMAL128);
     }
 }

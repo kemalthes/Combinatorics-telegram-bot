@@ -99,7 +99,7 @@ public class BotHandler extends TelegramLongPollingBot {
                     }
                     break;
             }
-        } catch (NumberFormatException | IllegalStateException e) {
+        } catch (IllegalArgumentException e) {
             sendMessage(chatId, "Неверно введенные данные");
             sendStartMessage(chatId, update.getMessage().getFrom().getFirstName());
         }
