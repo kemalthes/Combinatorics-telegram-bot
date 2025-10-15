@@ -42,22 +42,28 @@ public class CalculatorService {
     }
 
     public BigInteger permutationsRepeat(String message) {
-        int total = Integer.parseInt(message.strip().trim().split("\\s+")[0]) + 1;
-        if (isNotMatch(compilePatternWithNums(total), message)) {
+        String[] parts = message.strip().split("\\s+");
+        if (parts.length < 2) {
             throw new NumberFormatException();
         }
-        int[] nums = parseNumbers(message, total);
-        int sum = Arrays.stream(nums).sum() - nums[0];
+        int[] nums = Arrays.stream(parts).mapToInt(Integer::parseInt).toArray();
+        int n = nums[0];
+        if (n < 0) throw new IllegalArgumentException();
+        int sum = 0;
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] < 0) throw new IllegalArgumentException();
+            sum += nums[i];
+        }
+        if (sum != n) {
+            throw new IllegalArgumentException();
+        }
         BigInteger res = BigInteger.ONE;
-        for (int i = 2; i <= sum; i++) {
+        for (int i = 2; i <= n; i++) {
             res = res.multiply(BigInteger.valueOf(i));
         }
-        for (int j = 1; j < total; j++) {
-            if (nums[j] < 0) {
-                throw new IllegalArgumentException();
-            }
-            for (int i = 2; i <= nums[j]; i++) {
-                res = res.divide(BigInteger.valueOf(i));
+        for (int i = 1; i < nums.length; i++) {
+            for (int t = 2; t <= nums[i]; t++) {
+                res = res.divide(BigInteger.valueOf(t));
             }
         }
         return res;
@@ -69,12 +75,12 @@ public class CalculatorService {
         }
         int[] nums = parseNumbers(message, 2);
         int n = nums[0], k = nums[1];
-        if (n < k || n < 0 || k < 0) {
+        if (k < 0 || k > n) {
             throw new IllegalArgumentException();
         }
         BigInteger res = BigInteger.ONE;
         for (int i = n - k + 1; i <= n; i++) {
-            res = res.multiply(BigInteger.valueOf(i));
+            if (i >= 2) res = res.multiply(BigInteger.valueOf(i));
         }
         return res;
     }
@@ -85,7 +91,7 @@ public class CalculatorService {
         }
         int[] nums = parseNumbers(message, 2);
         int n = nums[0], k = nums[1];
-        if (n < k || n < 0 || k < 0) {
+        if (n < 0 || k < 0) {
             throw new IllegalArgumentException();
         }
         return BigInteger.valueOf(n).pow(k);
@@ -97,7 +103,7 @@ public class CalculatorService {
         }
         int[] nums = parseNumbers(message, 2);
         int n = nums[0], k = nums[1];
-        if (n < k || n < 0 || k < 0) {
+        if (k < 0 || k > n) {
             throw new IllegalArgumentException();
         }
         int r = Math.min(k, n - k);
@@ -115,13 +121,14 @@ public class CalculatorService {
         }
         int[] nums = parseNumbers(message, 2);
         int n = nums[0], k = nums[1];
-        if (n < k || n < 0 || k < 0) {
+        if (n < 1 || k < 0) {
             throw new IllegalArgumentException();
         }
-        int r = Math.min(k, n - 1);
+        int a = n + k - 1;
+        int r = Math.min(k, a - k);
         BigInteger res = BigInteger.ONE;
         for (int i = 1; i <= r; i++) {
-            res = res.multiply(BigInteger.valueOf(n + k - 1 - r + i));
+            res = res.multiply(BigInteger.valueOf(a - r + i));
             res = res.divide(BigInteger.valueOf(i));
         }
         return res;
@@ -133,7 +140,7 @@ public class CalculatorService {
         }
         int[] nums = parseNumbers(message, 3);
         int n = nums[0], m = nums[1], k = nums[2];
-        if (n < m || m <= k || k < 0) {
+        if (k < 0 || m > n || k > m) {
             throw new IllegalArgumentException();
         }
         BigInteger num = combination(" " + m + " " + k);
@@ -147,7 +154,15 @@ public class CalculatorService {
         }
         int[] nums = parseNumbers(message, 4);
         int n = nums[0], m = nums[1], k = nums[2], r = nums[3];
-        if (n < m || m <= k || k < r || n < 0 || m < 0 || k < 0 || r < 0) {
+        if (n < 0 || m < 0 || k < 0 || r < 0) {
+            throw new IllegalArgumentException();
+        }
+        if (m > n || k > n) {
+            throw new IllegalArgumentException();
+        }
+        int rMin = Math.max(0, k - (n - m));
+        int rMax = Math.min(k, m);
+        if (r < rMin || r > rMax) {
             throw new IllegalArgumentException();
         }
         BigInteger a = combination(" " + m + " " + r);
